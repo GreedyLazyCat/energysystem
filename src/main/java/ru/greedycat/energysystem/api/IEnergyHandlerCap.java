@@ -1,6 +1,6 @@
 package ru.greedycat.energysystem.api;
 
-public interface IEnergyStorageCap {
+public interface IEnergyHandlerCap {
     /**
      * Adds energy to the storage. Returns quantity of energy that was accepted.
      *

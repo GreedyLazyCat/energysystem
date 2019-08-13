@@ -1,7 +1,7 @@
 package ru.greedycat.energysystem.api;
 
 
-public enum ParticipantType {
+public enum EnumParticipantType {
     /**
      * Поставляет, но не может получать энергию
      */
@@ -20,5 +20,14 @@ public enum ParticipantType {
     /**
      * Провод
      */
-    WIRE
+    WIRE;
+
+    public static EnumParticipantType getTypeByString(String name){
+        EnumParticipantType[] values = EnumParticipantType.values();
+        for (EnumParticipantType type : values) {
+            if (type.name().toLowerCase() == name.toLowerCase())
+                return type;
+        }
+        return null;
+    }
 }
