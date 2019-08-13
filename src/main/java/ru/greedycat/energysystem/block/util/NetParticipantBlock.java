@@ -1,4 +1,4 @@
-package ru.greedycat.energysystem.block;
+package ru.greedycat.energysystem.block.util;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -6,7 +6,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import ru.greedycat.energysystem.tile.NetParticipant;
+import ru.greedycat.energysystem.tile.util.NetParticipant;
 
 import javax.annotation.Nullable;
 

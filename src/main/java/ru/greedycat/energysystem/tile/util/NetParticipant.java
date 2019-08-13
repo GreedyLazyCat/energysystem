@@ -1,4 +1,4 @@
-package ru.greedycat.energysystem.tile;
+package ru.greedycat.energysystem.tile.util;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -13,9 +13,11 @@ public class NetParticipant extends TileEntity {
     protected EnumParticipantType TYPE;
     protected HashSet<EnumFacing> connections;
 
-    public NetParticipant(){
+    @Override
+    public void onLoad() {
         TYPE = EnumParticipantType.RECEIVER;
         connections = new HashSet<>(Arrays.asList(EnumFacing.values()));
+        super.onLoad();
     }
 
     public EnumParticipantType getTYPE() {

@@ -15,6 +15,7 @@ public class EnergyHandler implements IEnergyHandlerCap {
         if (!simulate) {
             energy += energyReceived;
         }
+        onChanges();
         return energyReceived;
     }
 
@@ -25,6 +26,7 @@ public class EnergyHandler implements IEnergyHandlerCap {
         if (!simulate) {
             energy -= energyExtracted;
         }
+        onChanges();
         return energyExtracted;
     }
 
@@ -46,5 +48,10 @@ public class EnergyHandler implements IEnergyHandlerCap {
     @Override
     public void setMaxEnergyStored(int energy) {
         this.max_energy_stored = energy;
+    }
+
+    @Override
+    public void onChanges() {
+
     }
 }

@@ -27,4 +27,5 @@ public interface IEnergyReceiverCap {
      */
     void setMaxEnergyStored(int energy);
 
+    void onChanges();
 }

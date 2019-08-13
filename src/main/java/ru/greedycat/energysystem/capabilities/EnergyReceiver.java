@@ -15,6 +15,7 @@ public class EnergyReceiver implements IEnergyReceiverCap {
         if (!simulate) {
             energy += energyReceived;
         }
+        onChanges();
         return energyReceived;
     }
 
@@ -36,5 +37,10 @@ public class EnergyReceiver implements IEnergyReceiverCap {
     @Override
     public void setMaxEnergyStored(int energy) {
         this.max_energy_stored = energy;
+    }
+
+    @Override
+    public void onChanges() {
+
     }
 }

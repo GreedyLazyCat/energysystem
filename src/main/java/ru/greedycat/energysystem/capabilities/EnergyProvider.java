@@ -4,8 +4,13 @@ import ru.greedycat.energysystem.api.IEnergyProviderCap;
 
 public class EnergyProvider implements IEnergyProviderCap{
 
-    protected int energy;
+    public int energy;
     protected int max_energy_stored;
+
+    public EnergyProvider(){
+        this.max_energy_stored = 1000;
+        this.energy = 10;
+    }
 
     @Override
     public void setOutput(int output) {
@@ -24,6 +29,7 @@ public class EnergyProvider implements IEnergyProviderCap{
         if (!simulate) {
             energy -= energyExtracted;
         }
+        onChanges();
         return energyExtracted;
     }
 
@@ -45,5 +51,10 @@ public class EnergyProvider implements IEnergyProviderCap{
     @Override
     public void setMaxEnergyStored(int energy) {
         this.max_energy_stored = energy;
+    }
+
+    @Override
+    public void onChanges() {
+
     }
 }

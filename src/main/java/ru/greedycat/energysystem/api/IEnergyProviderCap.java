@@ -38,4 +38,6 @@ public interface IEnergyProviderCap {
      * @param energy
      */
     void setMaxEnergyStored(int energy);
+
+    void onChanges();
 }
