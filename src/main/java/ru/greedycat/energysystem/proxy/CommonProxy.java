@@ -7,12 +7,14 @@ import ru.greedycat.energysystem.capabilities.EnergyHandlerCap;
 import ru.greedycat.energysystem.capabilities.EnergyProviderCap;
 import ru.greedycat.energysystem.capabilities.EnergyReceiverCap;
 import ru.greedycat.energysystem.util.RegBlocks;
+import ru.greedycat.energysystem.util.RegItems;
 
 public class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event)
     {
         RegBlocks.register();
+        RegItems.register();
 
         EnergyHandlerCap.register();
         EnergyProviderCap.register();

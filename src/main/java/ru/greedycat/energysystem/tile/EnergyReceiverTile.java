@@ -1,20 +1,18 @@
 package ru.greedycat.energysystem.tile;
 
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.INBTSerializable;
 import ru.greedycat.energysystem.api.EnumParticipantType;
-import ru.greedycat.energysystem.capabilities.EnergyProvider;
-import ru.greedycat.energysystem.capabilities.EnergyProviderCap;
+import ru.greedycat.energysystem.capabilities.EnergyReceiver;
+import ru.greedycat.energysystem.capabilities.EnergyReceiverCap;
 import ru.greedycat.energysystem.tile.util.NetParticipant;
 
 import javax.annotation.Nullable;
 
-public class EnergyProviderTile extends NetParticipant{
+public class EnergyReceiverTile extends NetParticipant {
 
-    private EnergyProvider provider = new EnergyProvider(){
+    private EnergyReceiver receiver = new EnergyReceiver(){
         @Override
         public void onChanges() {
             markDirty();
@@ -24,27 +22,28 @@ public class EnergyProviderTile extends NetParticipant{
     @Override
     public void onLoad() {
         super.onLoad();
-        this.TYPE = EnumParticipantType.PROVIDER;
+        this.TYPE = EnumParticipantType.RECEIVER;
     }
 
     @Override
     public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {
-        return capability == EnergyProviderCap.ENERGY_PROVIDER;
+        return capability == EnergyReceiverCap.ENERGY_RECEIVER;
     }
 
     @Nullable
     @Override
     public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing) {
-        return (capability == EnergyProviderCap.ENERGY_PROVIDER)? (T) this.provider : null;
+        return (capability == EnergyReceiverCap.ENERGY_RECEIVER)? (T) this.receiver : null;
     }
 
     @Override
     public NBTTagCompound serializeNBT() {
-        return (NBTTagCompound) EnergyProviderCap.ENERGY_PROVIDER.getStorage().writeNBT(EnergyProviderCap.ENERGY_PROVIDER, this.provider,null);
+        return (NBTTagCompound) EnergyReceiverCap.ENERGY_RECEIVER.getStorage().writeNBT(EnergyReceiverCap.ENERGY_RECEIVER, this.receiver, null);
     }
 
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
-        EnergyProviderCap.ENERGY_PROVIDER.getStorage().readNBT(EnergyProviderCap.ENERGY_PROVIDER, this.provider,null, nbt);
+        super.deserializeNBT(nbt);
+        EnergyReceiverCap.ENERGY_RECEIVER.getStorage().readNBT(EnergyReceiverCap.ENERGY_RECEIVER, this.receiver, null, nbt);
     }
 }

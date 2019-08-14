@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 
 public class EnergyHandlerCap {
     @CapabilityInject(IEnergyHandlerCap.class)
-    public static Capability<IEnergyHandlerCap> ENERGY_PROVIDER = null;
+    public static Capability<IEnergyHandlerCap> ENERGY_HANDLER = null;
     public static void register(){
         CapabilityManager.INSTANCE.register(IEnergyHandlerCap.class, new Capability.IStorage<IEnergyHandlerCap>() {
             @Nullable
