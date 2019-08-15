@@ -13,16 +13,6 @@ public class EnergyProvider implements IEnergyProviderCap{
     }
 
     @Override
-    public void setOutput(int output) {
-
-    }
-
-    @Override
-    public int getOutput() {
-        return 0;
-    }
-
-    @Override
     public int extractEnergy(int maxExtract, boolean simulate) {
         int energyExtracted = Math.min(energy,  maxExtract);
 

@@ -22,6 +22,7 @@ public class EnergyHandlerCap {
 
                 nbtTagList.setInteger("energy", instance.getEnergyStored());
                 nbtTagList.setInteger("max_energy_stored", instance.getMaxEnergyStored());
+                nbtTagList.setBoolean("connected_as_receiver", instance.getConnectedAsReceiver());
 
                 return nbtTagList;
             }
@@ -31,6 +32,7 @@ public class EnergyHandlerCap {
                 NBTTagCompound nbtTagCompound = (NBTTagCompound) nbt;
                 instance.setEnergyStored(nbtTagCompound.getInteger("energy"));
                 instance.setMaxEnergyStored(nbtTagCompound.getInteger("max_energy_stored"));
+                instance.setConnectedAsReceiver(nbtTagCompound.getBoolean("connected_as_receiver"));
             }
         }, EnergyHandler::new);
     }

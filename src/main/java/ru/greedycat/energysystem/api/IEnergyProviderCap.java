@@ -2,10 +2,6 @@ package ru.greedycat.energysystem.api;
 
 public interface IEnergyProviderCap {
 
-    void setOutput(int output);
-
-    int getOutput();
-
     /**
      * Removes energy from the storage. Returns quantity of energy that was removed.
      *

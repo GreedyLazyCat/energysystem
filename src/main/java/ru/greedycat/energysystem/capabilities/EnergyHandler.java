@@ -6,6 +6,7 @@ public class EnergyHandler implements IEnergyHandlerCap {
 
     protected int energy;
     protected int max_energy_stored;
+    protected boolean connected_as_receiver;
 
     @Override
     public int receiveEnergy(int maxReceive, boolean simulate) {
@@ -48,6 +49,16 @@ public class EnergyHandler implements IEnergyHandlerCap {
     @Override
     public void setMaxEnergyStored(int energy) {
         this.max_energy_stored = energy;
+    }
+
+    @Override
+    public boolean getConnectedAsReceiver() {
+        return connected_as_receiver;
+    }
+
+    @Override
+    public void setConnectedAsReceiver(boolean bool) {
+        this.connected_as_receiver = bool;
     }
 
     @Override
