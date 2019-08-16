@@ -11,28 +11,34 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import ru.greedycat.energysystem.block.EnergyHandlerBlock;
 import ru.greedycat.energysystem.block.EnergyProviderBlock;
 import ru.greedycat.energysystem.block.EnergyReceiverBlock;
+import ru.greedycat.energysystem.block.EnergyWire;
 import ru.greedycat.energysystem.tile.EnergyHandlerTile;
 import ru.greedycat.energysystem.tile.EnergyProviderTile;
 import ru.greedycat.energysystem.tile.EnergyReceiverTile;
+import ru.greedycat.energysystem.tile.EnergyWireTile;
 
 public class RegBlocks {
 
     public static EnergyProviderBlock energyProviderBlock;
     public static EnergyReceiverBlock energyReceiverBlock;
     public static EnergyHandlerBlock energyHandlerBlock;
+    public static EnergyWire energyWire;
 
     public static void register() {
         energyProviderBlock = new EnergyProviderBlock(Material.ANVIL);
         energyReceiverBlock = new EnergyReceiverBlock(Material.ANVIL);
         energyHandlerBlock = new EnergyHandlerBlock(Material.ANVIL);
+        energyWire = new EnergyWire(Material.ANVIL);
 
         registerBlock(energyProviderBlock);
         registerBlock(energyReceiverBlock);
         registerBlock(energyHandlerBlock);
+        registerBlock(energyWire);
 
         registerTile(energyProviderBlock, EnergyProviderTile.class);
         registerTile(energyReceiverBlock, EnergyReceiverTile.class);
         registerTile(energyHandlerBlock, EnergyHandlerTile.class);
+        registerTile(energyWire, EnergyWireTile.class);
     }
 
     @SuppressWarnings("deprecation")

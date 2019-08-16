@@ -7,8 +7,10 @@ import ru.greedycat.energysystem.api.EnumParticipantType;
 import ru.greedycat.energysystem.capabilities.EnergyHandler;
 import ru.greedycat.energysystem.capabilities.EnergyHandlerCap;
 import ru.greedycat.energysystem.tile.util.NetParticipant;
+import scala.actors.threadpool.Arrays;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 
 public class EnergyHandlerTile extends NetParticipant {
 
@@ -23,6 +25,7 @@ public class EnergyHandlerTile extends NetParticipant {
     public void onLoad() {
         super.onLoad();
         this.TYPE = EnumParticipantType.HANDLER;
+        this.connections = new HashSet<>(Arrays.asList(new EnumFacing[]{EnumFacing.EAST, EnumFacing.NORTH}));
     }
 
     @Override

@@ -11,6 +11,8 @@ import javax.annotation.Nullable;
 public class EnergyWire extends NetParticipantBlock<EnergyWireTile> {
     public EnergyWire(Material materialIn) {
         super(materialIn);
+        this.setRegistryName("energywire");
+        this.setUnlocalizedName("energywire");
     }
 
     @Override
