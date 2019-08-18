@@ -30,4 +30,11 @@ public enum EnumParticipantType {
         }
         return null;
     }
+
+    public boolean eq(EnumParticipantType type){
+        if(this == type){
+            return true;
+        }
+        return false;
+    }
 }

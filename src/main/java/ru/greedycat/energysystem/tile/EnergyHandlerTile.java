@@ -10,6 +10,7 @@ import ru.greedycat.energysystem.tile.util.NetParticipant;
 import scala.actors.threadpool.Arrays;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class EnergyHandlerTile extends NetParticipant {
@@ -21,11 +22,27 @@ public class EnergyHandlerTile extends NetParticipant {
         }
     };
 
+    private HashSet<EnumFacing> receiver_sides;
+    private HashSet<EnumFacing> provider_sides;
+
     @Override
     public void onLoad() {
         super.onLoad();
         this.TYPE = EnumParticipantType.HANDLER;
         this.connections = new HashSet<>(Arrays.asList(new EnumFacing[]{EnumFacing.EAST, EnumFacing.NORTH}));
+        this.provider_sides =  new HashSet<>(Arrays.asList(new EnumFacing[]{EnumFacing.EAST}));
+        this.receiver_sides = new HashSet<>(Arrays.asList(new EnumFacing[]{EnumFacing.NORTH}));
+    }
+
+    @Override
+    public EnumParticipantType getTypeFromSide(EnumFacing facing) {
+        if(provider_sides.contains(facing)){
+            return EnumParticipantType.PROVIDER;
+        }
+        if(receiver_sides.contains(facing)){
+            return EnumParticipantType.RECEIVER;
+        }
+        return super.getTypeFromSide(facing);
     }
 
     @Override

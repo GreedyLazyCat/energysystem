@@ -32,6 +32,13 @@ public class NetParticipant extends TileEntity {
         return connections.contains(facing);
     }
 
+    public EnumParticipantType getTypeFromSide(EnumFacing facing){
+        if(this.canConnectFromSide(facing)) {
+            return this.getTYPE();
+        }
+        return null;
+    }
+
     public boolean hasNetwork(){
         return has_network;
     }
