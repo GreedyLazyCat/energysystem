@@ -72,7 +72,26 @@ public class EnergyNetworkUtil {
         }
 
         if(withId.size() > 1){
+            EnergyNetwork network = new EnergyNetwork(new ArrayList<>());
+            IEnergyNetworkListCap list = getEnergyNetworkList(world);
 
+            int net_id = list.addNetwork(network);
+
+            if(!main_has_network){
+                start_part.hasNetwork(true);
+                start_part.setNetworkId(net_id);
+                main_has_network = true;
+            }
+
+            for(Map.Entry<Integer, Map.Entry<EnumFacing, NetParticipant>> entry : withId.entrySet()){
+                EnergyNetwork sub_net = list.getNetwork(entry.getKey());
+
+                network.addReceivers(sub_net.getReceivers());
+
+                list.removeNetwork(entry.getKey());
+
+                setId(world, entry.getValue().getValue().getPos(), entry.getValue().getKey(), net_id, false);
+            }
         }
         else if (withId.size() == 1){
             int id = withId.entrySet().iterator().next().getKey();
@@ -97,11 +116,13 @@ public class EnergyNetworkUtil {
 
                         network.getReceivers().add(entry.getValue().getPos());
 
+                        setId(world, part.getPos(), entry.getKey(), net_id,true);
                         part.setNetworkId(net_id);
                         part.hasNetwork(true);
                     }
                 }
                 if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.PROVIDER){
+                    setId(world, part.getPos(), entry.getKey(), net_id,true);
                     part.setNetworkId(net_id);
                     part.hasNetwork(true);
                 }/*
@@ -134,24 +155,30 @@ public class EnergyNetworkUtil {
                             net.addReceiver(part.getPos());
                         }
                     }
-                    part.hasNetwork(true);
-                    part.setNetworkId(start_part.getNetworkId());
+
+                    setId(world, part.getPos(), entry.getKey(), start_part.getNetworkId(),true);
                 }
                 else if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.PROVIDER){
                     IEnergyNetworkListCap list = getEnergyNetworkList(world);
-                    //ArrayList<BlockPos> p = new ArrayList<>();
                     EnergyNetwork network = new EnergyNetwork(new ArrayList<>());
-                    list.addNetwork(network);
+                    int net_id = list.addNetwork(network);
 
-                    part.hasNetwork(true);
-                    part.setNetworkId(network.getId());
+                    setId(world, part.getPos(), entry.getKey(), net_id,true);
                 }
 
             }
         }
     }
 
-    public static void setId(World world, BlockPos start, EnumFacing start_facing, int id){
+    /**
+     *
+     * @param world Мир
+     * @param start Стартовая позиция
+     * @param start_facing Стартовое направление
+     * @param id id сети, который нужно выставить
+     * @param add_to_network нужно ли добавлять участников в сеть
+     */
+    public static void setId(World world, BlockPos start, EnumFacing start_facing, int id, boolean add_to_network){
         HashSet<BlockPos> checked = new HashSet<>(); //список проверенных блоков
         ArrayDeque<AbstractMap.SimpleEntry<EnumFacing, BlockPos>> queue = new ArrayDeque<>(100);//Очередь, это особенность реализации алгоритма поиска в ширину.
         IEnergyNetworkListCap list = getEnergyNetworkList(world);
@@ -173,7 +200,7 @@ public class EnergyNetworkUtil {
                         participant.hasNetwork(true);
                     }
                     if(type.eq(EnumParticipantType.RECEIVER)){
-                        if(world.hasCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null)) {
+                        if(add_to_network && world.hasCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null)) {
                             IEnergyNetworkListCap net_list = world.getCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null);
                             EnergyNetwork network = net_list.getNetwork(id);
 

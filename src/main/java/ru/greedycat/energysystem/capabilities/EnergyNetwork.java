@@ -4,7 +4,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 
-public class EnergyNetwork {
+public class EnergyNetwork extends ArrayList<BlockPos> {
     public ArrayList<BlockPos> receivers;
     private int id;
 
@@ -23,6 +23,13 @@ public class EnergyNetwork {
     public void addReceiver(BlockPos pos){
         receivers.add(pos);
     }
+
+    public void addReceivers(ArrayList<BlockPos> receivers){
+        for(BlockPos pos : receivers){
+            this.receivers.add(pos);
+        }
+    }
+
     //removers
     public void removeReceiver(int index){
         receivers.remove(index);
