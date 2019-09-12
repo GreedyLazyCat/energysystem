@@ -45,7 +45,7 @@ public class EnergyNetworkUtil {
 
     }
 
-    public static void handleWire(World world, NetParticipant participant, BlockPos pos){
+    public static void handleWire(World world, NetParticipant start_part, BlockPos pos){
 
         HashMap<EnumFacing, NetParticipant> withoutId = new HashMap<>();
         HashMap<Integer, Map.Entry<EnumFacing, NetParticipant>> withId = new HashMap<>();
@@ -76,13 +76,13 @@ public class EnergyNetworkUtil {
         }
         else if (withId.size() == 1){
             int id = withId.entrySet().iterator().next().getKey();
-            participant.setNetworkId(id);
-            participant.hasNetwork(true);
+            start_part.setNetworkId(id);
+            start_part.hasNetwork(true);
             main_has_network = true;
         }
 
         if(main_has_network && withoutId.size() > 0){
-            int net_id = participant.getNetworkId();
+            int net_id = start_part.getNetworkId();
 
             for(Map.Entry<EnumFacing, NetParticipant> entry : withoutId.entrySet()){
                 NetParticipant part = entry.getValue();
@@ -90,7 +90,7 @@ public class EnergyNetworkUtil {
                 if(part.getTYPE() == EnumParticipantType.WIRE){
 
                 }
-                if(part.getTYPE() == EnumParticipantType.RECEIVER){
+                if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.RECEIVER){
                     if(world.hasCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null)){
                         IEnergyNetworkListCap net_list = world.getCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null);
                         EnergyNetwork network = net_list.getNetwork(net_id);
@@ -101,10 +101,10 @@ public class EnergyNetworkUtil {
                         part.hasNetwork(true);
                     }
                 }
-                if(part.getTYPE() == EnumParticipantType.PROVIDER){
+                if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.PROVIDER){
                     part.setNetworkId(net_id);
                     part.hasNetwork(true);
-                }
+                }/*
                 if(part.getTYPE() == EnumParticipantType.HANDLER){
                     if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.RECEIVER){
                         if(world.hasCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null)) {
@@ -119,20 +119,44 @@ public class EnergyNetworkUtil {
 
                     entry.getValue().setNetworkId(net_id);
                     entry.getValue().hasNetwork(true);
-                }
+                }*/
             }
         }
         else if(withoutId.size() > 0){
+            for(Map.Entry<EnumFacing, NetParticipant> entry : withoutId.entrySet()){
+                NetParticipant part = entry.getValue();
 
+                if(main_has_network){
+                    if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.RECEIVER){
+                        IEnergyNetworkListCap list = getEnergyNetworkList(world);
+                        EnergyNetwork net = list.getNetwork(start_part.getNetworkId());
+                        if(net != null){
+                            net.addReceiver(part.getPos());
+                        }
+                    }
+                    part.hasNetwork(true);
+                    part.setNetworkId(start_part.getNetworkId());
+                }
+                else if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.PROVIDER){
+                    IEnergyNetworkListCap list = getEnergyNetworkList(world);
+                    //ArrayList<BlockPos> p = new ArrayList<>();
+                    EnergyNetwork network = new EnergyNetwork(new ArrayList<>());
+                    list.addNetwork(network);
+
+                    part.hasNetwork(true);
+                    part.setNetworkId(network.getId());
+                }
+
+            }
         }
     }
 
-    public static void setId(World world, BlockPos start, EnumFacing facing, int id){
+    public static void setId(World world, BlockPos start, EnumFacing start_facing, int id){
         HashSet<BlockPos> checked = new HashSet<>(); //список проверенных блоков
         ArrayDeque<AbstractMap.SimpleEntry<EnumFacing, BlockPos>> queue = new ArrayDeque<>(100);//Очередь, это особенность реализации алгоритма поиска в ширину.
         IEnergyNetworkListCap list = getEnergyNetworkList(world);
 
-        queue.offer(new AbstractMap.SimpleEntry<>(facing, start));
+        queue.offer(new AbstractMap.SimpleEntry<>(start_facing, start));
         checked.add(start);
         while (!queue.isEmpty()) {
             Map.Entry entry = queue.poll();

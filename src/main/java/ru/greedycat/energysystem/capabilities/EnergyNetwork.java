@@ -6,6 +6,15 @@ import java.util.ArrayList;
 
 public class EnergyNetwork {
     public ArrayList<BlockPos> receivers;
+    private int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public EnergyNetwork(ArrayList<BlockPos> receivers) {
         this.receivers = receivers;

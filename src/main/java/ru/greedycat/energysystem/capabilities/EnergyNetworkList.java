@@ -35,6 +35,7 @@ public class EnergyNetworkList implements IEnergyNetworkListCap {
 
     public int addNetwork(EnergyNetwork network){
         int id = getNextId();
+        network.setId(id);
         networks.put(id, network);
         return id;
     }
