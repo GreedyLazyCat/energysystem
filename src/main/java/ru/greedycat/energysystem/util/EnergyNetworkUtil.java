@@ -79,20 +79,20 @@ public class EnergyNetworkUtil {
 
         //если участников с id нашлось больше одного
         if(withId.size() > 1){
-            //создаем сеть, которую набьем участиниками сетей найденных блоков тем самым объеденив их
+            //создаем сеть, которую набьем участиниками сетей найденных блоков тем самым объеденив сети
             EnergyNetwork network = new EnergyNetwork(new ArrayList<>());
             IEnergyNetworkListCap list = getEnergyNetworkList(world);
 
-            //добавляем пока пустую сеть в главный список и сохраняем ее id 
+            //добавляем пока пустую сеть в главный список и сохраняем ее id
             int net_id = list.addNetwork(network);
 
             for(Map.Entry<Integer, Map.Entry<EnumFacing, NetParticipant>> entry : withId.entrySet()){
-                //добавление стартового участника в сеть если он receiver
+                //если стартовый блок не имеет сети даем ему сеть
                 if(!main_has_network){
                     start_part.hasNetwork(true);
                     start_part.setNetworkId(net_id);
                     main_has_network = true;
-
+                    //добавление стартового участника в сеть если он receiver
                     if(start_part.getTypeFromSide(entry.getValue().getKey().getOpposite()) == EnumParticipantType.RECEIVER){
                         EnergyNetwork net = list.getNetwork(start_part.getNetworkId());
                         if(net != null){
@@ -100,23 +100,27 @@ public class EnergyNetworkUtil {
                         }
                     }
                 }
-
+                //полчаем сеть наденного блока
                 EnergyNetwork sub_net = list.getNetwork(entry.getKey());
-
+                //добавляем всех участников подсети в созданную ранее сеть
                 network.addReceivers(sub_net.getReceivers());
-
+                //удаляем подсети - она нам больше не нужна
                 list.removeNetwork(entry.getKey());
-
+                //запускаем алгоритм, который выставит новый id в этой сети
                 setId(world, entry.getValue().getValue().getPos(), entry.getValue().getKey(), net_id, false);
             }
         }
+        //если участник с id только 1
         else if (withId.size() == 1){
+            //получаем через итератор
             Map.Entry<Integer, Map.Entry<EnumFacing, NetParticipant>> entry = withId.entrySet().iterator().next();
+            //отдельно сохраняем id для удобства
             int id = entry.getKey();
+            //ставим id стартовому участнику
             start_part.setNetworkId(id);
             start_part.hasNetwork(true);
             main_has_network = true;
-
+            //отдельно сохраняем facing для удобства
             EnumFacing facing = entry.getValue().getKey();
 
             //добавление стартового участника в сеть если он receiver
@@ -128,15 +132,17 @@ public class EnergyNetworkUtil {
                 }
             }
         }
-
+        //если у стартового участника есть id сети и найдено больше 0 участника без id
         if(main_has_network && withoutId.size() > 0){
+            //получаем этот id
             int net_id = start_part.getNetworkId();
 
+            //проходимся по всем участникам без id и вычтавляем им id
             for(Map.Entry<EnumFacing, NetParticipant> entry : withoutId.entrySet()){
                 NetParticipant part = entry.getValue();
 
                 if(part.getTYPE() == EnumParticipantType.WIRE){
-
+                    setId(world, part.getPos(), entry.getKey(), net_id,true);
                 }
                 if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.RECEIVER){
                     if(world.hasCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null)){
@@ -146,47 +152,28 @@ public class EnergyNetworkUtil {
                         network.getReceivers().add(entry.getValue().getPos());
 
                         setId(world, part.getPos(), entry.getKey(), net_id,true);
-                        part.setNetworkId(net_id);
-                        part.hasNetwork(true);
                     }
                 }
                 if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.PROVIDER){
                     setId(world, part.getPos(), entry.getKey(), net_id,true);
-                    part.setNetworkId(net_id);
-                    part.hasNetwork(true);
-                }/*
-                if(part.getTYPE() == EnumParticipantType.HANDLER){
-                    if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.RECEIVER){
-                        if(world.hasCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null)) {
-                            IEnergyNetworkListCap net_list = world.getCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null);
-                            EnergyNetwork network = net_list.getNetwork(net_id);
-
-                            network.getReceivers().add(part.getPos());
-                            if (part.hasCapability(EnergyHandlerCap.ENERGY_HANDLER, null))
-                                part.getCapability(EnergyHandlerCap.ENERGY_HANDLER, null).setConnectedAsReceiver(true);
-                        }
-                    }
-
-                    entry.getValue().setNetworkId(net_id);
-                    entry.getValue().hasNetwork(true);
-                }*/
+                }
             }
         }
+        //если у стартового участника нет id сети и найдено больше 0 участника без id
         else if(withoutId.size() > 0){
             for(Map.Entry<EnumFacing, NetParticipant> entry : withoutId.entrySet()){
                 NetParticipant part = entry.getValue();
 
-                if(main_has_network){
-                    if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.RECEIVER){
-                        IEnergyNetworkListCap list = getEnergyNetworkList(world);
-                        EnergyNetwork net = list.getNetwork(start_part.getNetworkId());
-                        if(net != null){
-                            net.addReceiver(part.getPos());
-                        }
+                // если у старотого есть сеть и это receiver
+                if(main_has_network && part.getTypeFromSide(entry.getKey()) == EnumParticipantType.RECEIVER){
+                    IEnergyNetworkListCap list = getEnergyNetworkList(world);
+                    EnergyNetwork net = list.getNetwork(start_part.getNetworkId());
+                    if(net != null){
+                        net.addReceiver(part.getPos());
                     }
-
                     setId(world, part.getPos(), entry.getKey(), start_part.getNetworkId(),true);
                 }
+                //если это не receiver и у стартового нет сети
                 else if(part.getTypeFromSide(entry.getKey()) == EnumParticipantType.PROVIDER){
                     IEnergyNetworkListCap list = getEnergyNetworkList(world);
                     EnergyNetwork network = new EnergyNetwork(new ArrayList<>());

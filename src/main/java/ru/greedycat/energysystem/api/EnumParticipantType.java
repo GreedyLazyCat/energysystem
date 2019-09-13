@@ -20,7 +20,9 @@ public enum EnumParticipantType {
     /**
      * Провод
      */
-    WIRE;
+    WIRE,
+
+    NONE;
 
     public static EnumParticipantType getTypeByString(String name){
         EnumParticipantType[] values = EnumParticipantType.values();

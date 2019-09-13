@@ -36,7 +36,7 @@ public class NetParticipant extends TileEntity {
         if(this.canConnectFromSide(facing)) {
             return this.getTYPE();
         }
-        return null;
+        return EnumParticipantType.NONE;
     }
 
     public boolean hasNetwork(){
