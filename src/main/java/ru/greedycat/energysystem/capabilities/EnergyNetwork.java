@@ -4,7 +4,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 
-public class EnergyNetwork extends ArrayList<BlockPos> {
+public class EnergyNetwork {
     public ArrayList<BlockPos> receivers;
     private int id;
 

@@ -6,7 +6,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import ru.greedycat.energysystem.api.EnumParticipantType;
 import ru.greedycat.energysystem.api.IEnergyNetworkListCap;
-import ru.greedycat.energysystem.capabilities.EnergyHandlerCap;
 import ru.greedycat.energysystem.capabilities.EnergyNetwork;
 import ru.greedycat.energysystem.capabilities.EnergyNetworkListCap;
 import ru.greedycat.energysystem.tile.util.NetParticipant;
@@ -14,7 +13,7 @@ import ru.greedycat.energysystem.tile.util.NetParticipant;
 import java.util.*;
 
 public class EnergyNetworkUtil {
-
+    /*
     public static void onNetParticipantPlaced(World world, NetParticipant participant, BlockPos pos){
         EnumParticipantType type = participant.getTYPE();
         switch (type){
@@ -31,59 +30,77 @@ public class EnergyNetworkUtil {
                 handleWire(world, participant, pos);
                 break;
         }
-    }
+    }*/
 
-    public static void handleProvider(World world, NetParticipant participant, BlockPos pos){
+    //public static void handleProvider(World world, NetParticipant start_part, BlockPos pos){ }
 
-    }
+    //public static void handleReceiver(World world, NetParticipant start_part, BlockPos pos){ }
 
-    public static void handleReceiver(World world, NetParticipant participant, BlockPos pos){
+    //public static void handleHandler(World world, NetParticipant start_part, BlockPos pos){ }
+    //Это бдует вместо onNetParticipantPlaced
 
-    }
+    public static void onNetParticipantPlaced(World world, NetParticipant start_part, BlockPos pos){
 
-    public static void handleHandler(World world, NetParticipant participant, BlockPos pos){
+        HashMap<EnumFacing, NetParticipant> withoutId = new HashMap<>(); // Список участников без id
+        HashMap<Integer, Map.Entry<EnumFacing, NetParticipant>> withId = new HashMap<>();// Список участников с id
 
-    }
+        boolean main_has_network = false; // есть ли у участника выполняющего проверку сеть
 
-    public static void handleWire(World world, NetParticipant start_part, BlockPos pos){
-
-        HashMap<EnumFacing, NetParticipant> withoutId = new HashMap<>();
-        HashMap<Integer, Map.Entry<EnumFacing, NetParticipant>> withId = new HashMap<>();
-
-        boolean main_has_network = false;
-
+        //проверяем блоки во всех направлениях
         for (EnumFacing facing : EnumFacing.values()){
+            //просто получаем tile
             BlockPos child = pos.offset(facing);
             TileEntity tile = world.getTileEntity(child);
 
-            if(tile != null && tile instanceof NetParticipant){
+            //здесь важно проверить, что к стартовому блоку тоже можно подключиться
+            if(start_part.canConnectFromSide(facing.getOpposite()) && tile != null && tile instanceof NetParticipant){
                 NetParticipant child_participant = (NetParticipant) tile;
 
-                if(child_participant.canConnectFromSide(facing)){
-                    if(child_participant.hasNetwork()){
-                        withId.put(child_participant.getNetworkId(), new AbstractMap.SimpleEntry<>(facing, child_participant));
-                    }
-                    else{
-                        withoutId.put(facing, child_participant);
-                    }
+                //сохраняем тип стартового блока и дочернего
+                EnumParticipantType type = start_part.getTypeFromSide(facing.getOpposite());
+                EnumParticipantType child_type = child_participant.getTypeFromSide(facing);
 
+                //если стартовый не receiver и дочерний блок receiver - добавляем в соответствующий список с id или без
+                if(!type.eq(EnumParticipantType.RECEIVER) && child_type.eq(EnumParticipantType.RECEIVER)){
+                    if(child_participant.hasNetwork())
+                        withId.put(child_participant.getNetworkId(), new AbstractMap.SimpleEntry<>(facing, child_participant));
+                    else
+                        withoutId.put(facing, child_participant);
+                }
+                //анлогично и для provider
+                if(!type.eq(EnumParticipantType.PROVIDER) && child_type.eq(EnumParticipantType.PROVIDER)){
+                    if(child_participant.hasNetwork())
+                        withId.put(child_participant.getNetworkId(), new AbstractMap.SimpleEntry<>(facing, child_participant));
+                    else
+                        withoutId.put(facing, child_participant);
                 }
             }
         }
 
+        //если участников с id нашлось больше одного
         if(withId.size() > 1){
+            //создаем сеть, которую набьем участиниками сетей найденных блоков тем самым объеденив их
             EnergyNetwork network = new EnergyNetwork(new ArrayList<>());
             IEnergyNetworkListCap list = getEnergyNetworkList(world);
 
+            //добавляем пока пустую сеть в главный список и сохраняем ее id 
             int net_id = list.addNetwork(network);
 
-            if(!main_has_network){
-                start_part.hasNetwork(true);
-                start_part.setNetworkId(net_id);
-                main_has_network = true;
-            }
-
             for(Map.Entry<Integer, Map.Entry<EnumFacing, NetParticipant>> entry : withId.entrySet()){
+                //добавление стартового участника в сеть если он receiver
+                if(!main_has_network){
+                    start_part.hasNetwork(true);
+                    start_part.setNetworkId(net_id);
+                    main_has_network = true;
+
+                    if(start_part.getTypeFromSide(entry.getValue().getKey().getOpposite()) == EnumParticipantType.RECEIVER){
+                        EnergyNetwork net = list.getNetwork(start_part.getNetworkId());
+                        if(net != null){
+                            net.addReceiver(start_part.getPos());
+                        }
+                    }
+                }
+
                 EnergyNetwork sub_net = list.getNetwork(entry.getKey());
 
                 network.addReceivers(sub_net.getReceivers());
@@ -94,10 +111,22 @@ public class EnergyNetworkUtil {
             }
         }
         else if (withId.size() == 1){
-            int id = withId.entrySet().iterator().next().getKey();
+            Map.Entry<Integer, Map.Entry<EnumFacing, NetParticipant>> entry = withId.entrySet().iterator().next();
+            int id = entry.getKey();
             start_part.setNetworkId(id);
             start_part.hasNetwork(true);
             main_has_network = true;
+
+            EnumFacing facing = entry.getValue().getKey();
+
+            //добавление стартового участника в сеть если он receiver
+            if(start_part.getTypeFromSide(facing.getOpposite()) == EnumParticipantType.RECEIVER){
+                IEnergyNetworkListCap list = getEnergyNetworkList(world);
+                EnergyNetwork net = list.getNetwork(start_part.getNetworkId());
+                if(net != null){
+                    net.addReceiver(start_part.getPos());
+                }
+            }
         }
 
         if(main_has_network && withoutId.size() > 0){
