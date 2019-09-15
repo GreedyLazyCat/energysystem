@@ -13,6 +13,7 @@ public class NetParticipant extends TileEntity {
 
     protected EnumParticipantType TYPE;
     protected HashSet<EnumFacing> connections;
+    protected HashSet<EnumParticipantType> types_of_connection;
     protected int network_id;
     protected boolean has_network;
 
@@ -22,6 +23,14 @@ public class NetParticipant extends TileEntity {
         connections = new HashSet<>(Arrays.asList(EnumFacing.values()));
         System.out.println("onLoad Tile");
         super.onLoad();
+    }
+
+    public void addTypeOfConnection(EnumParticipantType type){
+        types_of_connection.add(type);
+    }
+
+    public void removeTypeOfConnection(EnumParticipantType type){
+        types_of_connection.remove(type);
     }
 
     public EnumParticipantType getTYPE() {

@@ -43,6 +43,7 @@ public class EnergyNetworkUtil {
 
         HashMap<EnumFacing, NetParticipant> withoutId = new HashMap<>(); // Список участников без id
         HashMap<Integer, Map.Entry<EnumFacing, NetParticipant>> withId = new HashMap<>();// Список участников с id
+        //HashMap<Map.Entry<EnumFacing, NetParticipant>, Integer> withIdd = new HashMap<>();// Список участников с id
 
         boolean main_has_network = false; // есть ли у участника выполняющего проверку сеть
 
@@ -214,6 +215,7 @@ public class EnergyNetworkUtil {
                     if(type.eq(EnumParticipantType.PROVIDER)){
                         participant.setNetworkId(id);
                         participant.hasNetwork(true);
+                        //participant.addTypeOfConnection(EnumParticipantType.PROVIDER);
                     }
                     if(type.eq(EnumParticipantType.RECEIVER)){
                         if(add_to_network && world.hasCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null)) {
@@ -225,6 +227,7 @@ public class EnergyNetworkUtil {
 
                         participant.setNetworkId(id);
                         participant.hasNetwork(true);
+                        //participant.addTypeOfConnection(EnumParticipantType.RECEIVER);
                     }
                 }
 
@@ -237,16 +240,17 @@ public class EnergyNetworkUtil {
 
                         if(!checked.contains(child) && child_participant.canConnectFromSide(face)){
                             EnumParticipantType child_type = child_participant.getTypeFromSide(face);
+                            EnumParticipantType opposite_type = participant.getTypeFromSide(face.getOpposite());
 
-                            if(!type.eq(EnumParticipantType.RECEIVER) && !type.eq(EnumParticipantType.PROVIDER) && child_type.eq(EnumParticipantType.WIRE)){
+                            if(opposite_type.eq(participant.getTypeFromSide(face.getOpposite())) && child_type.eq(EnumParticipantType.WIRE)){
                                 checked.add(child);
                                 queue.addLast(new AbstractMap.SimpleEntry<>(face, child));
                             }
-                            if(!type.eq(EnumParticipantType.RECEIVER) && child_type.eq(EnumParticipantType.RECEIVER)){
+                            if(!opposite_type.eq(EnumParticipantType.RECEIVER) && child_type.eq(EnumParticipantType.RECEIVER)){
                                 checked.add(child);
                                 queue.addLast(new AbstractMap.SimpleEntry<>(face, child));
                             }
-                            if(!type.eq(EnumParticipantType.PROVIDER) && child_type.eq(EnumParticipantType.PROVIDER)){
+                            if(!opposite_type.eq(EnumParticipantType.PROVIDER) && child_type.eq(EnumParticipantType.PROVIDER)){
                                 checked.add(child);
                                 queue.addLast(new AbstractMap.SimpleEntry<>(face, child));
                             }
@@ -257,6 +261,35 @@ public class EnergyNetworkUtil {
         }
     }
 
+    public static void heuristicSearch(World world, BlockPos start, EnumFacing start_facing, BlockPos goal){
+        BlockPosComparator comparator = new BlockPosComparator(goal);
+        PriorityQueue<BlockPos> queue = new PriorityQueue<>(comparator);
+        HashSet<BlockPos> checked = new HashSet<>();
+
+        queue.offer(start);
+        checked.add(start);
+        while (!queue.isEmpty()){
+            BlockPos pos = queue.remove();
+            TileEntity tile = world.getTileEntity(pos);
+            if(tile != null && tile instanceof NetParticipant) {
+                NetParticipant participant = (NetParticipant) tile;
+
+                for (EnumFacing face : EnumFacing.VALUES) {
+
+                }
+            }
+        }
+    }
+
+    public static int minManhDistance(BlockPos pos1, BlockPos pos2){
+        /*
+        double powX = Math.pow(Math.abs(pos1.getX() - pos2.getX()), 2);
+        double powY = Math.pow(Math.abs(pos1.getX() - pos2.getY()), 2);
+        double powZ = Math.pow(Math.abs(pos1.getX() - pos2.getZ()), 2);
+        double sqrt = Math.sqrt(powX + powY + powZ);*/
+        return Math.abs(pos1.getX() - pos2.getX()) + Math.abs(pos1.getX() - pos2.getY()) + Math.abs(pos1.getX() - pos2.getZ());
+    }
+
     public static IEnergyNetworkListCap getEnergyNetworkList(World world) {
         if(world.hasCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null)) {
             IEnergyNetworkListCap list = world.getCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null);
@@ -264,4 +297,5 @@ public class EnergyNetworkUtil {
         }
         return null;
     }
+
 }
