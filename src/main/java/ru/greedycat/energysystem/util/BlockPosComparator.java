@@ -7,15 +7,17 @@ import java.util.Comparator;
 public class BlockPosComparator implements Comparator<BlockPos> {
 
     private BlockPos goal;
+    private BlockPos start;
 
-    public BlockPosComparator(BlockPos goal){
+    public BlockPosComparator(BlockPos goal, BlockPos start){
         this.goal = goal;
+        this.start = start;
     }
 
     @Override
     public int compare(BlockPos o1, BlockPos o2) {
-        int first = EnergyNetworkUtil.minManhDistance(o1, goal);
-        int second =  EnergyNetworkUtil.minManhDistance(o2, goal);
-        return first - second;
+        double f1 = o1.getDistance(goal.getX(), goal.getY(), goal.getZ()) + EnergyNetworkUtil.minManhDistance(o1, start);
+        double f2 = o2.getDistance(goal.getX(), goal.getY(), goal.getZ()) + EnergyNetworkUtil.minManhDistance(o2, start);
+        return Double.compare(f1, f2);
     }
 }

@@ -197,6 +197,8 @@ public class EnergyNetworkUtil {
      */
     public static void setId(World world, BlockPos start, EnumFacing start_facing, int id, boolean add_to_network){
         HashSet<BlockPos> checked = new HashSet<>(); //список проверенных блоков
+        HashSet<BlockPos> providers = new HashSet<>();
+        HashSet<BlockPos> receivers = new HashSet<>();
         ArrayDeque<AbstractMap.SimpleEntry<EnumFacing, BlockPos>> queue = new ArrayDeque<>(100);//Очередь, это особенность реализации алгоритма поиска в ширину.
         IEnergyNetworkListCap list = getEnergyNetworkList(world);
 
@@ -215,7 +217,7 @@ public class EnergyNetworkUtil {
                     if(type.eq(EnumParticipantType.PROVIDER)){
                         participant.setNetworkId(id);
                         participant.hasNetwork(true);
-                        //participant.addTypeOfConnection(EnumParticipantType.PROVIDER);
+                        providers.add(nPos);
                     }
                     if(type.eq(EnumParticipantType.RECEIVER)){
                         if(add_to_network && world.hasCapability(EnergyNetworkListCap.ENERGY_NETWORK_LIST, null)) {
@@ -227,58 +229,86 @@ public class EnergyNetworkUtil {
 
                         participant.setNetworkId(id);
                         participant.hasNetwork(true);
-                        //participant.addTypeOfConnection(EnumParticipantType.RECEIVER);
+                        receivers.add(nPos);
                     }
                 }
 
                 for (EnumFacing face : EnumFacing.VALUES) {
                     BlockPos child = nPos.offset(face);//эта функция возвращает позицию со сдвигом в данном направлении
-                    TileEntity child_tile = world.getTileEntity(child);
+                    if(!checked.contains(child)) {
+                        TileEntity child_tile = world.getTileEntity(child);
 
-                    if(child_tile != null && child_tile instanceof NetParticipant){
-                        NetParticipant child_participant = (NetParticipant) child_tile;
+                        if (child_tile != null && child_tile instanceof NetParticipant) {
+                            NetParticipant child_participant = (NetParticipant) child_tile;
 
-                        if(!checked.contains(child) && child_participant.canConnectFromSide(face)){
-                            EnumParticipantType child_type = child_participant.getTypeFromSide(face);
-                            EnumParticipantType opposite_type = participant.getTypeFromSide(face.getOpposite());
+                            if (!checked.contains(child) && child_participant.canConnectFromSide(face)) {
+                                EnumParticipantType child_type = child_participant.getTypeFromSide(face);
+                                EnumParticipantType opposite_type = participant.getTypeFromSide(face.getOpposite());
 
-                            if(opposite_type.eq(participant.getTypeFromSide(face.getOpposite())) && child_type.eq(EnumParticipantType.WIRE)){
-                                checked.add(child);
-                                queue.addLast(new AbstractMap.SimpleEntry<>(face, child));
-                            }
-                            if(!opposite_type.eq(EnumParticipantType.RECEIVER) && child_type.eq(EnumParticipantType.RECEIVER)){
-                                checked.add(child);
-                                queue.addLast(new AbstractMap.SimpleEntry<>(face, child));
-                            }
-                            if(!opposite_type.eq(EnumParticipantType.PROVIDER) && child_type.eq(EnumParticipantType.PROVIDER)){
-                                checked.add(child);
-                                queue.addLast(new AbstractMap.SimpleEntry<>(face, child));
+                                if (opposite_type.eq(participant.getTypeFromSide(face.getOpposite())) && child_type.eq(EnumParticipantType.WIRE)) {
+                                    checked.add(child);
+                                    queue.addLast(new AbstractMap.SimpleEntry<>(face, child));
+                                }
+                                if (!opposite_type.eq(EnumParticipantType.RECEIVER) && child_type.eq(EnumParticipantType.RECEIVER)) {
+                                    checked.add(child);
+                                    queue.addLast(new AbstractMap.SimpleEntry<>(face, child));
+                                }
+                                if (!opposite_type.eq(EnumParticipantType.PROVIDER) && child_type.eq(EnumParticipantType.PROVIDER)) {
+                                    checked.add(child);
+                                    queue.addLast(new AbstractMap.SimpleEntry<>(face, child));
+                                }
                             }
                         }
                     }
                 }
             }
         }
+
+        for(BlockPos provider : providers){
+            HashSet<BlockPos> reachable_receivers = new HashSet();
+            for (BlockPos receiver : receivers){
+                if(canReachTo(world, provider, receiver)){
+                    reachable_receivers.add(receiver);
+                }
+            }
+        }
     }
 
-    public static void heuristicSearch(World world, BlockPos start, EnumFacing start_facing, BlockPos goal){
-        BlockPosComparator comparator = new BlockPosComparator(goal);
+    public static boolean canReachTo(World world, BlockPos start, BlockPos goal){
+        BlockPosComparator comparator = new BlockPosComparator(goal, start);
         PriorityQueue<BlockPos> queue = new PriorityQueue<>(comparator);
         HashSet<BlockPos> checked = new HashSet<>();
 
         queue.offer(start);
         checked.add(start);
         while (!queue.isEmpty()){
-            BlockPos pos = queue.remove();
+            BlockPos pos = queue.poll();
+
+            if(pos.equals(goal)){
+                return true;
+            }
+
             TileEntity tile = world.getTileEntity(pos);
             if(tile != null && tile instanceof NetParticipant) {
                 NetParticipant participant = (NetParticipant) tile;
+                EnumParticipantType type = participant.getTYPE();
 
                 for (EnumFacing face : EnumFacing.VALUES) {
+                    BlockPos child = pos.offset(face);//эта функция возвращает позицию со сдвигом в данном направлении
+                    if(!checked.contains(child)) {
+                        TileEntity child_tile = world.getTileEntity(child);
 
+                        if (child_tile != null && child_tile instanceof NetParticipant) {
+                            if (type.eq(EnumParticipantType.WIRE)) {
+                                checked.add(child);
+                                queue.offer(child);
+                            }
+                        }
+                    }
                 }
             }
         }
+        return false;
     }
 
     public static int minManhDistance(BlockPos pos1, BlockPos pos2){
